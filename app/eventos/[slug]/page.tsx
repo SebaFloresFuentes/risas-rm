@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import EventCard from "@/components/EventCard";
 import type { Event } from "@/types/event";
 
 type PageProps = {
@@ -28,6 +29,26 @@ type SupabaseEvent = {
   verified: boolean;
 };
 
+function mapEvent(item: SupabaseEvent): Event {
+  return {
+    id: item.id,
+    slug: item.slug,
+    comedian: item.comedian,
+    show: item.show,
+    date: item.event_date,
+    time: item.event_time.slice(0, 5),
+    venue: item.venue,
+    comuna: item.comuna,
+    priceFrom: item.price_from,
+    ticketProvider: item.ticket_provider,
+    ticketUrl: item.ticket_url,
+    imageUrl: item.image_url,
+    featured: item.featured,
+    soldOut: item.sold_out,
+    verified: item.verified,
+  };
+}
+
 function formatPrice(price: number | null) {
   if (price === null) return "Por confirmar";
 
@@ -51,11 +72,15 @@ export default function EventPage({ params }: PageProps) {
   const { slug } = use(params);
 
   const [event, setEvent] = useState<Event | null>(null);
+  const [relatedEvents, setRelatedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     async function loadEvent() {
+      setLoading(true);
+      setNotFound(false);
+
       const { data, error } = await supabase
         .from("events")
         .select("*")
@@ -70,25 +95,27 @@ export default function EventPage({ params }: PageProps) {
         return;
       }
 
-      const item = data as SupabaseEvent;
+      const currentEvent = mapEvent(data as SupabaseEvent);
+      setEvent(currentEvent);
 
-      setEvent({
-        id: item.id,
-        slug: item.slug,
-        comedian: item.comedian,
-        show: item.show,
-        date: item.event_date,
-        time: item.event_time.slice(0, 5),
-        venue: item.venue,
-        comuna: item.comuna,
-        priceFrom: item.price_from,
-        ticketProvider: item.ticket_provider,
-        ticketUrl: item.ticket_url,
-        imageUrl: item.image_url,
-        featured: item.featured,
-        soldOut: item.sold_out,
-        verified: item.verified,
-      });
+      const { data: relatedData, error: relatedError } = await supabase
+        .from("events")
+        .select("*")
+        .eq("comedian", currentEvent.comedian)
+        .eq("verified", true)
+        .neq("id", currentEvent.id)
+        .order("event_date", { ascending: true })
+        .order("event_time", { ascending: true })
+        .limit(3);
+
+      if (relatedError) {
+        console.error(relatedError);
+        setRelatedEvents([]);
+      } else {
+        setRelatedEvents(
+          ((relatedData ?? []) as SupabaseEvent[]).map(mapEvent)
+        );
+      }
 
       setLoading(false);
     }
@@ -140,11 +167,15 @@ export default function EventPage({ params }: PageProps) {
         </div>
       </header>
 
+      {/* Información principal */}
       <section className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.25em] text-purple-400">
+          <a
+            href={`/?venue=${encodeURIComponent(event.venue)}#cartelera`}
+            className="text-sm font-black uppercase tracking-[0.25em] text-purple-400 transition hover:text-purple-300"
+          >
             {event.venue} · {event.comuna}
-          </p>
+          </a>
 
           <h1 className="mt-5 text-5xl font-black tracking-tight md:text-7xl">
             {event.comedian}
@@ -157,7 +188,9 @@ export default function EventPage({ params }: PageProps) {
           <div className="mt-10 space-y-5 border-t border-white/10 pt-8 text-lg">
             <p>
               📅{" "}
-              <span className="capitalize">{formatDate(event.date)}</span>
+              <span className="capitalize">
+                {formatDate(event.date)}
+              </span>
             </p>
 
             <p>🕗 {event.time} hrs</p>
@@ -175,8 +208,11 @@ export default function EventPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Compra */}
         <aside className="h-fit rounded-3xl border border-white/10 bg-[#181720] p-8 lg:sticky lg:top-8">
-          <p className="text-sm text-zinc-500">Entradas desde</p>
+          <p className="text-sm text-zinc-500">
+            Entradas desde
+          </p>
 
           <p className="mt-2 text-4xl font-black">
             {formatPrice(event.priceFrom)}
@@ -196,7 +232,9 @@ export default function EventPage({ params }: PageProps) {
               disabled
               className="mt-8 w-full cursor-not-allowed rounded-xl bg-white/5 px-6 py-4 font-bold text-zinc-600"
             >
-              {event.soldOut ? "Entradas agotadas" : "Entradas por confirmar"}
+              {event.soldOut
+                ? "Entradas agotadas"
+                : "Entradas por confirmar"}
             </button>
           )}
 
@@ -205,6 +243,50 @@ export default function EventPage({ params }: PageProps) {
           </p>
         </aside>
       </section>
+
+      {/* Shows relacionados */}
+      {relatedEvents.length > 0 && (
+        <section className="border-t border-white/10">
+          <div className="mx-auto max-w-7xl px-6 py-16 lg:py-20">
+            <div className="mb-10">
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-purple-400">
+                Más de {event.comedian}
+              </p>
+
+              <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <h2 className="text-3xl font-black tracking-tight md:text-4xl">
+                  También te puede interesar
+                </h2>
+
+                <a
+                  href={`/?search=${encodeURIComponent(
+                    event.comedian
+                  )}#cartelera`}
+                  className="text-sm font-bold text-purple-400 transition hover:text-purple-300"
+                >
+                  Ver cartelera →
+                </a>
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {relatedEvents.map((relatedEvent) => (
+                <EventCard
+                  key={relatedEvent.id}
+                  event={relatedEvent}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <footer className="border-t border-white/10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-zinc-600 md:flex-row md:items-center md:justify-between">
+          <p>© 2026 Risas RM</p>
+          <p>Comedia y stand-up en la Región Metropolitana.</p>
+        </div>
+      </footer>
     </main>
   );
 }

@@ -32,7 +32,9 @@ export default function EventsGrid() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(
+    searchParams.get("search") ?? ""
+  );
   const [comuna, setComuna] = useState("");
   const [venue, setVenue] = useState(
     searchParams.get("venue") ?? ""

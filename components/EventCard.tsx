@@ -1,4 +1,5 @@
 import type { Event } from "@/types/event";
+import EventArtwork from "@/components/EventArtwork";
 
 type EventCardProps = {
   event: Event;
@@ -45,29 +46,23 @@ export default function EventCard({ event }: EventCardProps) {
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="relative text-7xl transition duration-300 group-hover:scale-110">
-            🎙️
-          </span>
+          <EventArtwork
+            comedian={event.comedian}
+            show={event.show}
+            date={event.date}
+          />
         )}
 
-        {/* Oscurecimiento para imágenes */}
         {event.imageUrl && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/20" />
         )}
 
-        {/* Show */}
-        <span className="absolute left-4 top-4 max-w-[70%] rounded-full border border-white/15 bg-black/60 px-3 py-2 text-xs font-semibold text-white backdrop-blur">
-          {event.show}
-        </span>
-
-        {/* Destacado */}
         {event.featured && !event.soldOut && (
           <span className="absolute right-4 top-4 rounded-full bg-purple-400 px-3 py-2 text-[10px] font-black tracking-wide text-purple-950">
             DESTACADO
           </span>
         )}
 
-        {/* Agotado */}
         {event.soldOut && (
           <span className="absolute right-4 top-4 rounded-full bg-red-500 px-3 py-2 text-[10px] font-black tracking-wide text-white">
             AGOTADO
@@ -76,11 +71,12 @@ export default function EventCard({ event }: EventCardProps) {
       </div>
 
       {/* Información */}
-      <a href={`/eventos/${event.slug}`}>
-        <h3 className="text-2xl font-black tracking-tight text-white transition hover:text-purple-400">
+      <div className="p-6">
+        <a href={`/eventos/${event.slug}`} className="inline-block">
+          <h3 className="text-2xl font-black tracking-tight text-white transition hover:text-purple-400">
             {event.comedian}
-        </h3>
-      </a>
+          </h3>
+        </a>
 
         <div className="mt-5 space-y-3 text-sm text-zinc-400">
           <p className="flex items-start gap-3">
@@ -113,9 +109,9 @@ export default function EventCard({ event }: EventCardProps) {
         </div>
 
         {/* Precio + CTA */}
-        <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/10 pt-5">
+        <div className="mt-6 flex items-center justify-between gap-6 border-t border-white/10 pt-6">
           <div>
-            <p className="text-xs text-zinc-600">Entradas desde</p>
+            <p className="text-xs text-zinc-500">Entradas desde</p>
 
             <p className="mt-1 text-xl font-black text-white">
               {formatPrice(event.priceFrom)}
@@ -127,20 +123,20 @@ export default function EventCard({ event }: EventCardProps) {
               href={event.ticketUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl bg-purple-400 px-5 py-3 text-sm font-black text-purple-950 transition hover:bg-purple-300"
+              className="shrink-0 rounded-xl bg-purple-400 px-5 py-3 text-sm font-black text-purple-950 transition hover:bg-purple-300"
             >
               Comprar →
             </a>
           ) : (
             <button
               disabled
-              className="cursor-not-allowed rounded-xl bg-white/5 px-5 py-3 text-sm font-bold text-zinc-600"
+              className="shrink-0 cursor-not-allowed rounded-xl bg-white/5 px-5 py-3 text-sm font-bold text-zinc-600"
             >
               {event.soldOut ? "Agotado" : "Próximamente"}
             </button>
           )}
         </div>
-      
+      </div>
 
       {/* Borde inferior de eventos destacados */}
       {event.featured && (
