@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import EventCard from "@/components/EventCard";
 import EventFilters from "@/components/EventFilters";
 import { supabase } from "@/lib/supabase";
@@ -24,13 +25,17 @@ type SupabaseEvent = {
 };
 
 export default function EventsGrid() {
+  const searchParams = useSearchParams();
+
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [comuna, setComuna] = useState("");
-  const [venue, setVenue] = useState("");
+  const [venue, setVenue] = useState(
+    searchParams.get("venue") ?? ""
+  );
   const [sort, setSort] = useState("date");
 
   useEffect(() => {

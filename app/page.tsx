@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import EventsGrid from "@/components/EventsGrid";
+
 
 export default function Home() {
   return (
@@ -14,7 +16,7 @@ export default function Home() {
             <a href="#cartelera" className="hover:text-white">
               Cartelera
             </a>
-            <a href="#locales" className="hover:text-white">
+            <a href="locales" className="hover:text-white">
               Locales
             </a>
             <a href="#nosotros" className="hover:text-white">
@@ -114,7 +116,15 @@ export default function Home() {
 
 
         {/* Aquí pondremos los eventos */}
-        <EventsGrid />
+        <Suspense
+        fallback={
+          <div className="py-16 text-center text-zinc-500">
+            Cargando cartelera...
+          </div>
+        }
+>
+  <EventsGrid />
+</Suspense>
       </section>
 
       {/* Publicidad */}
