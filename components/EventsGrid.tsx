@@ -9,6 +9,7 @@ import type { Event } from "@/types/event";
 
 type SupabaseEvent = {
   id: string;
+  slug: string;
   comedian: string;
   show: string;
   event_date: string;
@@ -60,6 +61,7 @@ export default function EventsGrid() {
       const mappedEvents: Event[] = ((data ?? []) as SupabaseEvent[]).map(
         (item) => ({
           id: item.id,
+          slug: item.slug,
           comedian: item.comedian,
           show: item.show,
           date: item.event_date,

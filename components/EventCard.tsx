@@ -76,10 +76,11 @@ export default function EventCard({ event }: EventCardProps) {
       </div>
 
       {/* Información */}
-      <div className="p-6">
-        <h3 className="text-2xl font-black tracking-tight text-white">
-          {event.comedian}
+      <a href={`/eventos/${event.slug}`}>
+        <h3 className="text-2xl font-black tracking-tight text-white transition hover:text-purple-400">
+            {event.comedian}
         </h3>
+      </a>
 
         <div className="mt-5 space-y-3 text-sm text-zinc-400">
           <p className="flex items-start gap-3">
@@ -139,7 +140,7 @@ export default function EventCard({ event }: EventCardProps) {
             </button>
           )}
         </div>
-      </div>
+      
 
       {/* Borde inferior de eventos destacados */}
       {event.featured && (

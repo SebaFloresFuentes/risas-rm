@@ -1,5 +1,6 @@
 export type Event = {
     id: string;
+    slug: string;
     comedian: string;
     show: string;
     date: string;
