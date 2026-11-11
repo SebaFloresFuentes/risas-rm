@@ -17,6 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://risas-rm.vercel.app"),
 
+  verification: {
+    google: "JKxv2WFj_WvtNGh3Y3UJCxu0QsG_xx7krsqaHEoA4_A",
+  },
+
   title: {
     default: "Risas RM | Stand-up y comedia en Santiago",
     template: "%s | Risas RM",
