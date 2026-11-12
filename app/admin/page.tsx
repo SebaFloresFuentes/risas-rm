@@ -7,7 +7,6 @@ import LogoutButton from "@/components/admin/LogoutButton";
 import {
   reviewCandidate,
   saveCandidate,
-  publishCandidate,
 } from "./actions";
 import PublishButton from "@/components/admin/PublishButton";
 import CreateCandidateForm from "@/components/admin/CreateCandidateForm";
@@ -240,10 +239,66 @@ function CandidateEditor({ candidate }: { candidate: Candidate }) {
   );
 }
 
-async function AdminDashboard() {
+
+type AdminFilters = {
+  status?: string | string[];
+  q?: string | string[];
+  page?: string | string[];
+};
+
+async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<AdminFilters>;
+}) {
   await connection();
 
+  const params = await searchParams;
+
+  const rawStatus =
+    typeof params.status === "string"
+      ? params.status
+      : "all";
+
+  const allowedStatuses = [
+    "pending",
+    "approved",
+    "rejected",
+    "duplicate",
+  ];
+
+  const status = allowedStatuses.includes(rawStatus)
+    ? rawStatus
+    : "all";
+
+  const rawSearch =
+    typeof params.q === "string" ? params.q : "";
+
+  const search = rawSearch
+    .slice(0, 80)
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .trim();
+
+
+  const rawPage =
+  typeof params.page === "string"
+    ? Number(params.page)
+    : 1;
+
+  const page =
+  Number.isSafeInteger(rawPage) &&
+  rawPage >= 1 &&
+  rawPage <= 10000
+    ? rawPage
+    : 1;
+
+  const pageSize = 10;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+
   const supabase = await createClient();
+
 
   const { data: auth, error: authError } =
     await supabase.auth.getClaims();
@@ -262,7 +317,36 @@ async function AdminDashboard() {
     redirect("/admin/login?error=unauthorized");
   }
 
-  const { data, error } = await supabase
+  // Contadores globales independientes de los filtros
+  const statuses = [
+    "pending",
+    "approved",
+    "rejected",
+    "duplicate",
+  ] as const;
+
+  const statsResults = await Promise.all(
+    statuses.map((item) =>
+      supabase
+        .from("event_candidates")
+        .select("id", { count: "exact", head: true })
+        .eq("review_status", item)
+    )
+  );
+
+  const stats = {
+    pending: statsResults[0].count ?? 0,
+    approved: statsResults[1].count ?? 0,
+    rejected: statsResults[2].count ?? 0,
+    duplicate: statsResults[3].count ?? 0,
+  };
+
+  const statsError = statsResults.some(
+    (result) => result.error !== null
+  );
+
+
+  let query = supabase
     .from("event_candidates")
     .select(`
       id,
@@ -279,14 +363,48 @@ async function AdminDashboard() {
       source_url,
       editorial_notes,
       review_status
-    `)
-    .order("created_at", { ascending: false })
-    .limit(50);
+    `, { count: "exact" });
+
+  if (status !== "all") {
+    query = query.eq("review_status", status);
+  }
+
+  if (search) {
+    query = query.or(
+      `comedian.ilike.%${search}%,show.ilike.%${search}%`
+    );
+  }
+
+
+
+  const { data, error, count } = await query
+  .order("created_at", { ascending: false })
+  .order("id", { ascending: false })
+  .range(from, to);
 
   const candidates = (data ?? []) as Candidate[];
 
-  return (
-    <main className="mx-auto max-w-7xl px-6 py-14">
+  const totalPages = Math.max(
+    1,
+    Math.ceil((count ?? 0) / pageSize)
+  );
+
+  function pageUrl(targetPage: number) {
+    const urlParams = new URLSearchParams();
+
+    if (search) urlParams.set("q", search);
+    if (status !== "all") urlParams.set("status", status);
+
+    urlParams.set("page", String(targetPage));
+
+    return `/admin?${urlParams.toString()}`;
+  }
+
+
+
+return (
+<main className="mx-auto max-w-7xl px-6 py-14">
+
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div>
           <p className="text-sm font-bold uppercase tracking-widest text-purple-400">
@@ -305,23 +423,113 @@ async function AdminDashboard() {
         <LogoutButton />
       </header>
 
-      <section className="mt-10 rounded-3xl border border-white/10 bg-[#181720] p-7">
+
+<section className="mt-10">
+  <h2 className="mb-5 text-xl font-bold text-white">
+    Resumen de candidatos
+  </h2>
+
+  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {[
+      {
+        label: "Pendientes",
+        value: stats.pending,
+        color: "text-amber-300",
+      },
+      {
+        label: "Aprobados",
+        value: stats.approved,
+        color: "text-green-400",
+      },
+      {
+        label: "Rechazados",
+        value: stats.rejected,
+        color: "text-red-400",
+      },
+      {
+        label: "Duplicados",
+        value: stats.duplicate,
+        color: "text-purple-400",
+      },
+    ].map((item) => (
+      <div
+        key={item.label}
+        className="rounded-2xl border border-white/10 bg-[#181720] p-6"
+      >
         <p className="text-sm text-zinc-400">
-          Candidatos encontrados
+          {item.label}
         </p>
-
-        <p className="mt-2 text-4xl font-black text-purple-400">
-          {error ? "—" : candidates.length}
+        <p className={`mt-3 text-3xl font-black ${item.color}`}>
+          {statsError ? "—" : item.value}
         </p>
+      </div>
+    ))}
+  </div>
 
+  {statsError && (
+    <p className="mt-3 text-sm text-red-400">
+      No se pudieron consultar todas las estadísticas.
+    </p>
+  )}
+</section>
 
-        <p className="mt-2 text-xs text-zinc-500">
-          Últimos 50 candidatos registrados
-        </p>
-      </section>
 
       {/* Formulario para agregar nuevos espectáculos */}
       <CreateCandidateForm />
+
+
+<section className="mt-8 rounded-3xl border border-white/10 bg-[#181720] p-7">
+  <h2 className="text-xl font-bold text-white">
+    Buscar espectáculos
+  </h2>
+
+  <form
+    action="/admin"
+    method="GET"
+    className="mt-5 grid gap-4 md:grid-cols-[1fr_220px_auto]"
+  >
+    <input
+      name="q"
+      type="search"
+      maxLength={80}
+      defaultValue={search}
+      placeholder="Buscar comediante o show..."
+      className="w-full rounded-xl border border-white/10 bg-[#0d0d15] px-4 py-3 text-white outline-none focus:border-purple-400"
+    />
+
+    <select
+      name="status"
+      defaultValue={status}
+      className="rounded-xl border border-white/10 bg-[#0d0d15] px-4 py-3 text-white"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="pending">Pendientes</option>
+      <option value="approved">Aprobados</option>
+      <option value="rejected">Rechazados</option>
+      <option value="duplicate">Duplicados</option>
+    </select>
+
+    <button
+      type="submit"
+      className="rounded-xl bg-purple-400 px-6 py-3 font-bold text-purple-950 hover:bg-purple-300"
+    >
+      Buscar
+    </button>
+  </form>
+
+  <a
+    href="/admin"
+    className="mt-4 inline-block text-sm text-zinc-400 hover:text-white"
+  >
+    Limpiar filtros
+  </a>
+
+  <p className="mt-4 text-sm text-zinc-500">
+    {error
+      ? "No se pudieron consultar los resultados."
+      : `${count ?? 0} coincidencias. Mostrando hasta ${pageSize} registros por página.`}  </p>
+</section>
+
 
       <section className="mt-8 rounded-3xl border border-white/10 bg-[#181720] p-7">
         <h2 className="text-2xl font-bold text-white">
@@ -398,20 +606,67 @@ async function AdminDashboard() {
           </div>
         )}
       </section>
+
+      {!error && (
+        <nav
+          aria-label="Paginación de candidatos"
+          className="mt-6 flex flex-wrap items-center justify-between gap-4"
+        >
+          <p className="text-sm text-zinc-400">
+            Página {page} de {totalPages}
+            {" · "}
+            {count ?? 0} coincidencias
+          </p>
+
+          <div className="flex items-center gap-3">
+            {page > 1 ? (
+              <a
+                href={pageUrl(page - 1)}
+                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"
+              >
+                ← Anterior
+              </a>
+            ) : (
+              <span className="rounded-xl border border-white/5 px-5 py-3 text-sm text-zinc-600">
+                ← Anterior
+              </span>
+            )}
+
+            {page < totalPages ? (
+              <a
+                href={pageUrl(page + 1)}
+                className="rounded-xl bg-purple-400 px-5 py-3 text-sm font-bold text-purple-950 hover:bg-purple-300"
+              >
+                Siguiente →
+              </a>
+            ) : (
+              <span className="rounded-xl border border-white/5 px-5 py-3 text-sm text-zinc-600">
+                Siguiente →
+              </span>
+            )}
+          </div>
+        </nav>
+      )}
+
     </main>
   );
 }
 
-export default function AdminPage() {
+
+export default function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<AdminFilters>;
+}) {
   return (
     <Suspense
       fallback={
         <main className="p-10 text-center text-zinc-400">
-          Verificando acceso administrativo...
+          Cargando administración...
         </main>
       }
     >
-      <AdminDashboard />
+      <AdminDashboard searchParams={searchParams} />
     </Suspense>
   );
 }
