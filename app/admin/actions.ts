@@ -192,6 +192,14 @@ export async function saveCandidate(formData: FormData) {
     _previousState: PublishState,
     formData: FormData
   ): Promise<PublishState> {
+
+  if (formData.get("confirmed") !== "yes") {
+    return {
+      success: false,
+      message: "Debes confirmar la revisión antes de publicar.",
+    };
+  }
+
     const id = formData.get("id");
 
     if (
@@ -261,3 +269,188 @@ export async function saveCandidate(formData: FormData) {
       message: "Evento publicado correctamente.",
     };
   }
+
+
+export type CreateCandidateState = {
+  success: boolean;
+  message: string;
+};
+
+export async function createCandidate(
+  _previousState: CreateCandidateState,
+  formData: FormData
+): Promise<CreateCandidateState> {
+  function field(name: string): string {
+    const value = formData.get(name);
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  const comedian = field("comedian");
+  const show = field("show");
+  const date = field("event_date");
+  const time = field("event_time");
+  const venue = field("venue");
+  const comuna = field("comuna");
+  const priceInput = field("price_from");
+
+  if (!comedian || !show || !date || !time || !venue || !comuna) {
+    return {
+      success: false,
+      message: "Completa los campos obligatorios.",
+    };
+  }
+
+  if (
+    comedian.length > 200 ||
+    show.length > 200 ||
+    venue.length > 200 ||
+    comuna.length > 120
+  ) {
+    return {
+      success: false,
+      message: "Alguno de los textos supera el largo permitido.",
+    };
+  }
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+    !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)
+  ) {
+    return {
+      success: false,
+      message: "La fecha o la hora no tienen un formato válido.",
+    };
+  }
+
+  const parsedDate = new Date(`${date}T12:00:00Z`);
+
+  if (
+    Number.isNaN(parsedDate.getTime()) ||
+    parsedDate.toISOString().slice(0, 10) !== date
+  ) {
+    return {
+      success: false,
+      message: "La fecha indicada no existe.",
+    };
+  }
+
+  const price =
+    priceInput === "" ? null : Number(priceInput);
+
+  if (
+    price !== null &&
+    (!Number.isSafeInteger(price) || price < 0)
+  ) {
+    return {
+      success: false,
+      message: "El precio debe ser un número entero positivo o cero.",
+    };
+  }
+
+  function urlField(name: string): string | null {
+    const value = field(name);
+    if (!value) return null;
+
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  }
+
+  const ticketInput = field("ticket_url");
+  const sourceInput = field("source_url");
+
+  const ticketUrl = urlField("ticket_url");
+  const sourceUrl = urlField("source_url");
+
+  if ((ticketInput && !ticketUrl) || (sourceInput && !sourceUrl)) {
+    return {
+      success: false,
+      message: "Los enlaces deben ser URLs HTTPS válidas.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  const { data: auth, error: authError } =
+    await supabase.auth.getClaims();
+
+  if (authError || !auth?.claims?.sub) {
+    return {
+      success: false,
+      message: "Debes iniciar sesión.",
+    };
+  }
+
+  const { data: admin, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", auth.claims.sub)
+    .maybeSingle();
+
+  if (adminError || !admin) {
+    return {
+      success: false,
+      message: "No tienes permisos administrativos.",
+    };
+  }
+
+  const { data: existing, error: searchError } = await supabase
+    .from("event_candidates")
+    .select("id")
+    .eq("comedian", comedian)
+    .eq("show", show)
+    .eq("event_date", date)
+    .eq("event_time", time)
+    .eq("venue", venue)
+    .in("review_status", ["pending", "approved"])
+    .limit(1);
+
+  if (searchError) {
+    return {
+      success: false,
+      message: "No se pudo comprobar si existe otro candidato.",
+    };
+  }
+
+  if (existing && existing.length > 0) {
+    return {
+      success: false,
+      message: "Ya existe un candidato con esos mismos datos.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("event_candidates")
+    .insert({
+      comedian,
+      show,
+      event_date: date,
+      event_time: time,
+      venue,
+      venue_address: field("venue_address") || null,
+      comuna,
+      price_from: price,
+      ticket_provider: field("ticket_provider") || null,
+      ticket_url: ticketUrl,
+      source_url: sourceUrl,
+      editorial_notes: field("editorial_notes") || null,
+    });
+
+  if (error) {
+    console.error("Error creando candidato:", error.code);
+    return {
+      success: false,
+      message: "No fue posible guardar el espectáculo.",
+    };
+  }
+
+  revalidatePath("/admin");
+
+  return {
+    success: true,
+    message: "Espectáculo guardado como pendiente de revisión.",
+  };
+}

@@ -10,6 +10,7 @@ import {
   publishCandidate,
 } from "./actions";
 import PublishButton from "@/components/admin/PublishButton";
+import CreateCandidateForm from "@/components/admin/CreateCandidateForm";
 
 type Candidate = {
   id: string;
@@ -313,15 +314,20 @@ async function AdminDashboard() {
           {error ? "—" : candidates.length}
         </p>
 
+
         <p className="mt-2 text-xs text-zinc-500">
           Últimos 50 candidatos registrados
         </p>
       </section>
 
+      {/* Formulario para agregar nuevos espectáculos */}
+      <CreateCandidateForm />
+
       <section className="mt-8 rounded-3xl border border-white/10 bg-[#181720] p-7">
         <h2 className="text-2xl font-bold text-white">
           Bandeja de revisión
         </h2>
+
 
         {error ? (
           <p className="mt-5 text-red-400">
