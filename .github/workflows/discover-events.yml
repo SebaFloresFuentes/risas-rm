@@ -1,0 +1,71 @@
+
+name: Risas RM - Descubrimiento de eventos
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    # Diariamente a las 12:17 UTC.
+    # 09:17 en horario de verano de Chile,
+    # 08:17 en horario de invierno.
+    - cron: "17 12 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: risas-rm-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: Buscar funciones de comedia
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Descubrir Ticketplus
+        run: node scripts/discover-ticketplus.mjs
+
+      - name: Descubrir PuntoTicket y otras fuentes
+        env:
+          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+        run: node scripts/discover-multisource.mjs
+
+      - name: Descubrir Comedy Pass
+        run: node scripts/discover-comedypass.mjs
+
+      - name: Unificar cartelera
+        run: node scripts/build-review-feed.mjs
+
+      - name: Mostrar resumen
+        run: |
+          node -e '
+          const d = require("./data/unified-review-feed.json");
+          console.log("Resumen de Risas RM:", d.summary);
+          '
+
+      - name: Guardar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risas-rm-discovery-${{ github.run_number }}
+          path: |
+            data/ticketplus-discovered.json
+            data/multisource-discovered.json
+            data/comedypass-discovered.json
+            data/unified-review-feed.json
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,45 @@
+
+[
+    {
+      "id": "comedypass",
+      "name": "Comedy Pass",
+      "listingUrl": "https://comedypass.online/santiago/",
+      "host": "comedypass.online",
+      "pathPrefix": "/tienda/",
+      "maxLinks": 30,
+      "enabled": true
+    },
+    {
+      "id": "puntoticket",
+      "name": "PuntoTicket",
+      "listingUrl": "https://www.puntoticket.com/todos",
+      "host": "www.puntoticket.com",
+      "pathPrefix": "/",
+      "linkKeywords": [
+        "stand up",
+        "stand-up",
+        "comedia",
+        "humor"
+      ],
+      "maxLinks": 30,
+      "enabled": true
+    },
+    {
+      "id": "ticketmaster",
+      "name": "Ticketmaster Chile",
+      "mode": "api",
+      "enabled": true
+    },
+    {
+      "id": "passline",
+      "name": "Passline",
+      "mode": "known_urls",
+      "urls": [
+        "https://www.passline.com/eventos/noches-de-comedia-en-la-peluqueria-576183",
+        "https://www.passline.com/eventos/desespelados",
+        "https://www.passline.com/eventos/un-show-de-comedia-con-pedro-ruminot-570821"
+      ],
+      "enabled": true
+    }
+  ]
+  

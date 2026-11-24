@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/data/candidate-proposals.json
+/data/ready-candidates.json
+/data/ticketplus-discovered.json
+/data/rm-candidate-review.json
+/data/multisource-discovered.json
+/data/comedypass-discovered.json
+/data/unified-review-feed.json
+/data/audited-review-feed.json
+/data/import-batch-puntoticket.json
