@@ -34,7 +34,7 @@ type EventArtworkProps = {
         <div className="relative flex h-full flex-col justify-between p-6">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-300">
-              Risas RM
+              RadarRisas
             </span>
   
             <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-bold text-zinc-300 backdrop-blur">

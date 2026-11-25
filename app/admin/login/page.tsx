@@ -40,7 +40,7 @@ export default function AdminLogin() {
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#181720] p-8 shadow-2xl">
         <div className="mb-8 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-purple-400">
-            Risas RM
+            RadarRisas
           </p>
           <h1 className="mt-3 text-3xl font-black text-white">
             Administración

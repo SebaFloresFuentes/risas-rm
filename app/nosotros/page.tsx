@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Nosotros",
   description:
-    "Conoce Risas RM, una cartelera independiente para descubrir stand-up y comedia en Santiago y la Región Metropolitana.",
+    "Conoce RadarRisas, una cartelera independiente para descubrir stand-up y comedia en Santiago y la Región Metropolitana.",
 };
 
 export default function NosotrosPage() {
@@ -36,7 +36,7 @@ export default function NosotrosPage() {
 
         <div className="mt-10 space-y-6 text-lg leading-8 text-zinc-400">
           <p>
-            Risas RM es una cartelera independiente creada para facilitar el
+            RadarRisas es una cartelera independiente creada para facilitar el
             descubrimiento de shows de stand-up y comedia en Santiago y la
             Región Metropolitana.
           </p>
@@ -48,7 +48,7 @@ export default function NosotrosPage() {
           </p>
 
           <p>
-            Risas RM no es una ticketera. Cuando un evento dispone de venta
+            RadarRisas no es una ticketera. Cuando un evento dispone de venta
             online, te dirigimos a la plataforma correspondiente para realizar
             la compra.
           </p>
@@ -61,7 +61,7 @@ export default function NosotrosPage() {
 
           <p className="mt-4 leading-7 text-zinc-400">
             Queremos que descubrir un panorama de comedia sea tan sencillo
-            como abrir Risas RM, revisar qué se presenta cerca de ti y elegir
+            como abrir RadarRisas, revisar qué se presenta cerca de ti y elegir
             tu próximo show.
           </p>
         </div>

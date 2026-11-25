@@ -52,7 +52,7 @@ export default async function EventJsonLd({ params }: Props) {
     description:
       `${event.show}, espectáculo de ${event.comedian} ` +
       `en ${event.venue}, ${event.comuna}, Chile.`,
-    url: `https://risas-rm.vercel.app/eventos/${event.slug}`,
+    url: `https://www.radarrisas.cl/eventos/${event.slug}`,
     startDate: time
       ? `${event.event_date}T${time}${getChileOffset(event.event_date, time)}`
       :  event.event_date,

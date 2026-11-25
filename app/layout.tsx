@@ -15,15 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://risas-rm.vercel.app"),
+  metadataBase: new URL("https://www.radarrisas.cl"),
 
   verification: {
     google: "JKxv2WFj_WvtNGh3Y3UJCxu0QsG_xx7krsqaHEoA4_A",
   },
 
   title: {
-    default: "Risas RM | Stand-up y comedia en Santiago",
-    template: "%s | Risas RM",
+    default: "RadarRisas | Stand-up y comedia en Santiago",
+    template: "%s | RadarRisas",
   },
 
   description:
@@ -40,12 +40,12 @@ export const metadata: Metadata = {
     "comediante Santiago",
     "cartelera stand up",
     "eventos Santiago",
-    "Risas RM",
+    "RadarRisas",
   ],
 
-  authors: [{ name: "Risas RM" }],
-  creator: "Risas RM",
-  publisher: "Risas RM",
+  authors: [{ name: "RadarRisas" }],
+  creator: "RadarRisas",
+  publisher: "RadarRisas",
   category: "entertainment",
 
   robots: {
@@ -63,15 +63,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_CL",
-    siteName: "Risas RM",
-    title: "Risas RM | Stand-up y comedia en Santiago",
+    siteName: "RadarRisas",
+    title: "RadarRisas | Stand-up y comedia en Santiago",
     description:
       "Encuentra shows de stand-up y comedia en Santiago y la Región Metropolitana. Fechas, locales, precios y entradas.",
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Risas RM | Stand-up y comedia en Santiago",
+    title: "RadarRisas | Stand-up y comedia en Santiago",
     description:
       "Encuentra shows de stand-up y comedia en Santiago y la Región Metropolitana.",
   },

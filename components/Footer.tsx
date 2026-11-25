@@ -1,3 +1,5 @@
+import BrandLogo from "@/components/BrandLogo";
+
 export default function Footer() {
     return (
       <footer className="mt-auto border-t border-white/10 bg-[#0d0d15]">
@@ -5,7 +7,7 @@ export default function Footer() {
           <div className="grid gap-10 md:grid-cols-3">
             <div>
               <a href="/" className="text-xl font-black tracking-tight text-white">
-                RISAS<span className="text-purple-400">RM.</span>
+                <BrandLogo />
               </a>
   
               <p className="mt-4 max-w-sm text-sm leading-6 text-zinc-500">
@@ -45,7 +47,7 @@ export default function Footer() {
   
             <div>
               <p className="text-sm font-bold text-white">
-                Risas RM
+                RadarRisas
               </p>
   
               <div className="mt-4 flex flex-col gap-3 text-sm text-zinc-500">
@@ -67,10 +69,10 @@ export default function Footer() {
           </div>
   
           <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-8 text-xs text-zinc-600 md:flex-row md:items-center md:justify-between">
-            <p>© 2026 Risas RM. Todos los derechos reservados.</p>
+            <p>© 2026 RadarRisas. Todos los derechos reservados.</p>
   
             <p>
-              La comedia de Santiago, en un solo lugar. ✦
+              La comedia, en tu radar. ✦
             </p>
           </div>
         </div>

@@ -412,7 +412,7 @@ return (
           </p>
 
           <h1 className="mt-3 text-4xl font-black text-white">
-            Administración Risas RM
+            Administración RadarRisas
           </h1>
 
           <p className="mt-3 text-zinc-400">

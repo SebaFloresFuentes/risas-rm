@@ -1,5 +1,5 @@
 
-name: Risas RM - Descubrimiento de eventos
+name: RadarRisas - Descubrimiento de eventos
 
 on:
   workflow_dispatch:
@@ -54,7 +54,7 @@ jobs:
         run: |
           node -e '
           const d = require("./data/unified-review-feed.json");
-          console.log("Resumen de Risas RM:", d.summary);
+          console.log("Resumen de RadarRisas:", d.summary);
           '
 
       - name: Guardar resultados

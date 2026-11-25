@@ -52,7 +52,7 @@ export default function PublishButton({
     }
 
     const confirmed = window.confirm(
-      "¿Confirmas que verificaste este espectáculo y quieres publicarlo en Risas RM?"
+      "¿Confirmas que verificaste este espectáculo y quieres publicarlo en RadarRisas?"
     );
 
     if (!confirmed) {

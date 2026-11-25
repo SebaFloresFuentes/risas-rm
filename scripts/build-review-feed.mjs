@@ -208,7 +208,7 @@ await writeFile(
   "utf8"
 );
 
-console.log("\n🎭 RISAS RM — CARTELERA UNIFICADA");
+console.log("\n🎭 RADARRISAS — CARTELERA UNIFICADA");
 console.log("---------------------------------");
 console.log("Total:", summary.total);
 console.log("Para revisión:", summary.reviewCandidates);

@@ -166,7 +166,7 @@ function getPrice($) {
   return null;
 }
 
-console.log("🎭 RISAS RM - COMEDY PASS");
+console.log("🎭 RADARRISAS - COMEDY PASS");
 
 const listingHtml = await download(LISTING_URL);
 const $listing = load(listingHtml);

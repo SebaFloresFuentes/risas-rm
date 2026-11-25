@@ -147,7 +147,7 @@ function getEventLinks(html) {
   return [...links].slice(0, MAX_EVENTS);
 }
 
-console.log("🎭 Risas RM - Descubrimiento Ticketplus");
+console.log("🎭 RadarRisas - Descubrimiento Ticketplus");
 console.log(`Cartelera: ${CATEGORY_URL}\n`);
 
 const html = await download(CATEGORY_URL);

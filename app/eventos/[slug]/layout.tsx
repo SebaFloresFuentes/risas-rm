@@ -42,7 +42,7 @@ export async function generateMetadata({
   const description =
     `${event.comedian} presenta ${event.show} ` +
     `el ${date} en ${event.venue}, ${event.comuna}. ` +
-    "Revisa la información de la función en Risas RM.";
+    "Revisa la información de la función en RadarRisas.";
 
   const canonical = `/eventos/${slug}`;
 
@@ -53,16 +53,16 @@ export async function generateMetadata({
       canonical,
     },
     openGraph: {
-      title: `${title} | Risas RM`,
+      title: `${title} | RadarRisas`,
       description,
       url: canonical,
       type: "website",
       locale: "es_CL",
-      siteName: "Risas RM",
+      siteName: "RadarRisas",
     },
     twitter: {
       card: "summary",
-      title: `${title} | Risas RM`,
+      title: `${title} | RadarRisas`,
       description,
     },
   };

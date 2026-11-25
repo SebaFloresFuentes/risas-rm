@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
-  description: "Política de privacidad de Risas RM.",
+  description: "Política de privacidad de RadarRisas.",
 };
 
 export default function PrivacidadPage() {
@@ -25,7 +25,7 @@ export default function PrivacidadPage() {
 
       <article className="mx-auto max-w-3xl px-6 py-16 md:py-24">
         <p className="text-sm font-black uppercase tracking-[0.25em] text-purple-400">
-          Risas RM
+          RadarRisas
         </p>
 
         <h1 className="mt-5 text-4xl font-black tracking-tight md:text-5xl">
@@ -42,7 +42,7 @@ export default function PrivacidadPage() {
               Información general
             </h2>
             <p className="mt-3">
-              Risas RM es una plataforma informativa dedicada a recopilar y
+              RadarRisas es una plataforma informativa dedicada a recopilar y
               organizar información sobre shows de comedia y stand-up en
               Santiago y la Región Metropolitana.
             </p>
@@ -53,7 +53,7 @@ export default function PrivacidadPage() {
               Información personal
             </h2>
             <p className="mt-3">
-              Risas RM no solicita actualmente la creación de cuentas ni el
+              RadarRisas no solicita actualmente la creación de cuentas ni el
               ingreso de información personal para consultar la cartelera.
             </p>
           </section>
@@ -87,7 +87,7 @@ export default function PrivacidadPage() {
               Cambios en esta política
             </h2>
             <p className="mt-3">
-              Esta política puede modificarse cuando Risas RM incorpore nuevas
+              Esta política puede modificarse cuando RadarRisas incorpore nuevas
               funciones o servicios. La fecha de la última actualización se
               mantendrá publicada en esta página.
             </p>

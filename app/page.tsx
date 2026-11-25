@@ -27,8 +27,8 @@ export default function Home() {
       </div>
 
       <h1 className="mt-7 max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.055em] md:text-7xl">
-        Encuentra tu próxima
-        <span className="block text-purple-400">gran risa.</span>
+        La comedia,
+        <span className="block text-purple-400">en tu radar.</span>
       </h1>
 
       <p className="mt-7 max-w-xl text-lg leading-8 text-zinc-400">
