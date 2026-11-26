@@ -84,12 +84,26 @@ activación segura.
 
 El esquema remoto se recuperó, respaldó y reconcilió. La baseline fue registrada
 en producción y las migraciones incrementales `202611250001`–`202611250005`
-fueron aplicadas el 25 de noviembre de 2026. Las escrituras automáticas siguen
-desactivadas mediante `RADARRISAS_WRITE_ENABLED=false`.
+fueron aplicadas el 25 de noviembre de 2026. La automatización fue activada y
+validada en producción el 26 de noviembre de 2026:
+
+- `RADARRISAS_WRITE_ENABLED=true` es la variable de repositorio activa;
+- descubrimiento diario: `17 12 * * *` UTC;
+- verificación comercial: cada tres horas y cada hora para funciones dentro de
+  las próximas 36 horas;
+- las escrituras usan un JWT efímero (máximo una hora) del rol limitado
+  `radarrisas_automation`, nunca una clave `service_role`.
+
+Los candidatos encontrados continúan siendo `pending` hasta la aprobación
+manual. Para detener las escrituras ante una incidencia, cambiar inmediatamente
+la variable de repositorio a `false`, conservar el historial y revisar
+[`supabase/PRODUCTION_RUNBOOK.md`](supabase/PRODUCTION_RUNBOOK.md). El registro
+verificable de activación está en
+[`supabase/PRODUCTION_ACTIVATION.md`](supabase/PRODUCTION_ACTIVATION.md).
 
 El build de producción usa explícitamente Webpack (`next build --webpack`). En
 este Mac, Next.js 16.4.5 con Turbopack queda bloqueado durante la compilación aun
 con caché limpia; Webpack completa el mismo build y es compatible con Vercel.
 
-No actives escrituras de producción sin completar el punto de control y obtener
-autorización explícita.
+No cambies migraciones, permisos, secretos ni la variable de escrituras sin un
+respaldo actual y autorización explícita.

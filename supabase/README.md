@@ -24,8 +24,10 @@ migraciones incrementales:
 
 Las seis versiones (`202611240000` a `202611250005`) están aplicadas y probadas
 en staging. La baseline fue registrada como histórica y las cinco migraciones
-incrementales también están aplicadas en producción. La automatización de
-producción permanece en dry-run.
+incrementales también están aplicadas en producción. La automatización está
+activa después de dos ejecuciones reales e idempotentes; consulta
+[`PRODUCTION_ACTIVATION.md`](PRODUCTION_ACTIVATION.md) para los conteos, runs y
+pendientes de revisión.
 
 ## Credenciales de automatización
 
@@ -44,9 +46,11 @@ Secretos requeridos:
 - `SUPABASE_AUTOMATION_PASSWORD`;
 - `TICKETMASTER_API_KEY`, solo si se habilita esa fuente.
 
-La variable de repositorio `RADARRISAS_WRITE_ENABLED` debe permanecer en
-`false` hasta la autorización de producción. Los inputs manuales de los
-workflows también nacen desactivados.
+Los inputs manuales de los workflows nacen desactivados. Desde la activación
+validada del 26 de noviembre de 2026, la variable de repositorio de producción
+`RADARRISAS_WRITE_ENABLED` está en `true`. Ante una anomalía, cambiarla
+inmediatamente a `false`, conservar el historial y seguir la sección de
+recuperación del runbook; no borrar datos ni deshacer las migraciones.
 
 ## Pruebas
 

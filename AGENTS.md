@@ -22,3 +22,25 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Never expose secrets. Do not commit environment files, service-role keys, API tokens, scraped raw credentials, or authenticated responses.
 - Do not run Supabase migrations or production writes, deploy, commit, or push without explicit authorization. Database migrations must be incremental and non-destructive, and must preserve compatibility with the existing `sold_out` field.
 - Generated discovery feeds and diagnostics must not invent prices, availability, locations, dates, or shows. Retain uncertainty explicitly for manual review.
+- Production automation is active as of 2026-11-26. Keep the GitHub repository
+  variable `RADARRISAS_WRITE_ENABLED=true` only while validation remains
+  healthy; switch it to `false` immediately for a critical ingestion,
+  authorization, duplicate, editorial-data, or visual regression. Do not
+  delete commercial history as part of recovery.
+- Before changing production automation, create an external `0700` backup,
+  record counts and an editorial-field fingerprint, then run discovery and
+  commercial workflows once with dry-run. After writes, verify pending
+  candidates, no duplicate dated-performance identities, preserved editorial
+  fields, and anonymous rejection of administrative RPCs.
+- Operational maintenance: inspect failed GitHub Actions runs and their
+  fourteen-day artifacts; review all `pending` candidates manually; investigate
+  `unknown` status as missing evidence rather than availability; rotate the
+  technical-user password through GitHub Secrets and disable its principal for
+  emergency revocation. Never persist JWTs or signing keys.
+- Current manual-review exceptions: Paloma Salas (source URL date conflicts
+  with page evidence) and Luis Slimming at Patio Bulnes (URL time conflicts
+  with page evidence) must remain unapproved until independently verified.
+- Pending hardening: update GitHub Action dependencies affected by the
+  Node.js-20 runtime deprecation warning, assess leaked-password protection,
+  and consolidate the two inherited overlapping candidate-update policies only
+  after a separate staging validation.
