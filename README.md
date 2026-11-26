@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RadarRisas
 
-## Getting Started
+Cartelera de espectáculos de comedia en la Región Metropolitana de Chile.
 
-First, run the development server:
+## Arquitectura
+
+- Next.js 16 y React 19 para el sitio público y el panel administrativo.
+- Supabase para eventos, candidatos, autenticación y publicación manual.
+- Scripts Node.js para descubrimiento, normalización, precios y disponibilidad.
+- GitHub Actions para descubrimiento diario y verificación comercial periódica.
+- Vercel para el despliegue web.
+
+Los nuevos espectáculos nunca se publican automáticamente: se preparan como candidatos y conservan la aprobación administrativa existente. Las comprobaciones comerciales solo pueden actualizar precio y disponibilidad; no deben modificar datos editoriales.
+
+## Desarrollo
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variables locales requeridas por el sitio y por los scripts que consultan eventos publicados:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`TICKETMASTER_API_KEY` es opcional para la fuente Ticketmaster. No se deben guardar valores reales en Git.
 
-## Learn More
+## Pruebas
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test
+npm run test:prices
+npm run test:supabase
+npm run lint
+npx next typegen && npx tsc --noEmit
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Los tests unitarios usan fixtures locales. `test:prices` consulta una muestra real de Ticketplus y PuntoTicket, pero no escribe en Supabase.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Automatización local
 
-## Deploy on Vercel
+Descubrir y unificar fuentes:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run automation:discover
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Auditar contra eventos publicados y normalizar candidatos:
+
+```bash
+npm run automation:normalize
+```
+
+Preparar una sincronización sin escrituras:
+
+```bash
+npm run automation:plan-sync
+npm run automation:apply-sync
+```
+
+Verificar precios y disponibilidad de eventos publicados sin escrituras:
+
+```bash
+npm run automation:verify-commercial
+npm run automation:apply-commercial
+```
+
+Para los tres comandos que consultan Supabase, exporta las variables públicas en el entorno o usa `node --env-file=.env.local` con el script correspondiente.
+
+Los estados de disponibilidad son `available`, `limited`, `sold_out` y `unknown`. Un error de red, bloqueo o ausencia de evidencia siempre produce `unknown` y no reemplaza el último estado confirmado.
+
+Los comandos `apply-*` siguen en modo dry-run salvo que
+`RADARRISAS_WRITE_ENABLED=true`; además, el modo de escritura inicia sesión con
+un usuario técnico y Supabase emite un JWT de una hora con el rol restringido
+`radarrisas_automation`. Consulta
+[supabase/README.md](supabase/README.md) para la preparación de staging y la
+activación segura.
+
+## Supabase
+
+El esquema remoto se recuperó, respaldó y reconcilió. La baseline fue registrada
+en producción y las migraciones incrementales `202611250001`–`202611250005`
+fueron aplicadas el 25 de noviembre de 2026. Las escrituras automáticas siguen
+desactivadas mediante `RADARRISAS_WRITE_ENABLED=false`.
+
+El build de producción usa explícitamente Webpack (`next build --webpack`). En
+este Mac, Next.js 16.4.5 con Turbopack queda bloqueado durante la compilación aun
+con caché limpia; Webpack completa el mismo build y es compatible con Vercel.
+
+No actives escrituras de producción sin completar el punto de control y obtener
+autorización explícita.

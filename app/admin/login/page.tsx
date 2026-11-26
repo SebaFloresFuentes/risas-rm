@@ -3,6 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from "next/navigation";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,6 +11,7 @@ const supabase = createBrowserClient(
 );
 
 export default function AdminLogin() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,8 @@ export default function AdminLogin() {
       return;
     }
 
-    window.location.assign("/admin");
+    router.replace("/admin");
+    router.refresh();
   }
 
   return (

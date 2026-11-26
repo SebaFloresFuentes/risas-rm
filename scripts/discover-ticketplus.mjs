@@ -1,6 +1,9 @@
 
 import { load } from "cheerio";
 import { writeFile } from "node:fs/promises";
+import { fetchPage } from "./lib/http-client.mjs";
+import { extractPrice } from "./lib/price-extractor.mjs";
+import { extractAvailability } from "./lib/availability-extractor.mjs";
 
 const CATEGORY_URL =
   "https://ticketplus.cl/taxons/stand-up-y-shows";
@@ -13,26 +16,11 @@ function sleep(ms) {
 }
 
 async function download(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "RisasRM-Discovery/0.1",
-        Accept: "text/html",
-      },
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return await response.text();
-  } finally {
-    clearTimeout(timeout);
-  }
+  return fetchPage(url, {
+    timeoutMs: 15000,
+    retries: 2,
+    backoffMs: 500,
+  });
 }
 
 function collectEvents(value) {
@@ -150,7 +138,7 @@ function getEventLinks(html) {
 console.log("🎭 RadarRisas - Descubrimiento Ticketplus");
 console.log(`Cartelera: ${CATEGORY_URL}\n`);
 
-const html = await download(CATEGORY_URL);
+const { html } = await download(CATEGORY_URL);
 const links = getEventLinks(html);
 
 console.log(`Enlaces encontrados: ${links.length}`);
@@ -164,7 +152,8 @@ for (const [index, url] of links.entries()) {
   );
 
   try {
-    const detailHtml = await download(url);
+    const detailPage = await download(url);
+    const detailHtml = detailPage.html;
     const structuredEvents = extractEvents(detailHtml);
 
     if (structuredEvents.length === 0) {
@@ -210,6 +199,15 @@ for (const [index, url] of links.entries()) {
         location: locationName(event.location),
         venueAddress: locationAddress(event.location),
         url,
+        ...extractPrice(detailHtml, detailPage.finalUrl, {
+          provider: "Ticketplus",
+          startDate,
+        }),
+        ...extractAvailability(detailHtml, {
+          provider: "Ticketplus",
+          startDate,
+          checkedAt: detailPage.verifiedAt,
+        }),
       };
 
       discovered.push(record);

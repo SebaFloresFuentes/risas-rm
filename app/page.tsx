@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import EventsGrid from "@/components/EventsGrid";
 import FeaturedEvents from "@/components/FeaturedEvents";
 
@@ -105,12 +106,12 @@ export default function Home() {
             </p>
           </div>
 
-          <a
+          <Link
             href="/#cartelera"
             className="text-sm font-black text-purple-400 transition hover:text-purple-300"
           >
             Ver todos →
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -123,33 +124,33 @@ export default function Home() {
         Descubre
       </span>
 
-      <a
+      <Link
         href="/#cartelera"
         className="text-sm font-semibold text-zinc-400 transition hover:text-purple-400"
       >
         Esta semana
-      </a>
+      </Link>
 
-      <a
+      <Link
         href="/#cartelera"
         className="text-sm font-semibold text-zinc-400 transition hover:text-purple-400"
       >
         Próximos shows
-      </a>
+      </Link>
 
-      <a
+      <Link
         href="/locales"
         className="text-sm font-semibold text-zinc-400 transition hover:text-purple-400"
       >
         Locales
-      </a>
+      </Link>
 
-      <a
+      <Link
         href="/#cartelera"
         className="text-sm font-semibold text-zinc-400 transition hover:text-purple-400"
       >
         Ver cartelera completa →
-      </a>
+      </Link>
     </div>
   </div>
 </section>

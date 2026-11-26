@@ -49,3 +49,12 @@ next-env.d.ts
 /data/unified-review-feed.json
 /data/audited-review-feed.json
 /data/import-batch-puntoticket.json
+# Resultados temporales de descubrimiento
+/data/discovered-events.json
+/data/rm-discovered.json
+
+/data/normalized-candidates.json
+/data/supabase-sync-plan.json
+/data/supabase-sync-result.json
+/data/commercial-verification.json
+/data/commercial-sync-result.json

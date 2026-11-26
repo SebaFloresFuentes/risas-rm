@@ -1,6 +1,9 @@
 
 import { writeFile } from "node:fs/promises";
 import { load } from "cheerio";
+import { fetchPage } from "./lib/http-client.mjs";
+import { extractPrice } from "./lib/price-extractor.mjs";
+import { extractAvailability } from "./lib/availability-extractor.mjs";
 
 const LISTING_URL = "https://comedypass.online/santiago/";
 const MAX_EVENTS = 30;
@@ -26,19 +29,11 @@ function plain(value) {
 }
 
 async function download(url) {
-  const response = await fetch(url, {
-    headers: {
-      Accept: "text/html",
-      "User-Agent": "RisasRM-Discovery/0.1",
-    },
-    signal: AbortSignal.timeout(15000),
+  return fetchPage(url, {
+    timeoutMs: 15000,
+    retries: 2,
+    backoffMs: 500,
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-
-  return response.text();
 }
 
 function findDate(text) {
@@ -138,37 +133,9 @@ function findAddress(description) {
   return match ? clean(match[1]) : null;
 }
 
-function getPrice($) {
-  const candidates = [
-    $('meta[property="product:price:amount"]').attr("content"),
-    $(".summary .price .woocommerce-Price-amount")
-      .first()
-      .text(),
-    $(".summary .price").first().text(),
-  ];
-
-  for (const raw of candidates) {
-    if (!raw) continue;
-
-    const match = clean(raw).match(
-      /\$?\s*(\d{1,3}(?:\.\d{3})+|\d{4,7})/
-    );
-
-    if (!match) continue;
-
-    const amount = Number(match[1].replace(/\./g, ""));
-
-    if (Number.isInteger(amount) && amount >= 0) {
-      return amount;
-    }
-  }
-
-  return null;
-}
-
 console.log("🎭 RADARRISAS - COMEDY PASS");
 
-const listingHtml = await download(LISTING_URL);
+const { html: listingHtml } = await download(LISTING_URL);
 const $listing = load(listingHtml);
 const links = new Set();
 
@@ -207,7 +174,8 @@ for (const [index, url] of urls.entries()) {
   console.log(`\n[${index + 1}/${urls.length}] ${url}`);
 
   try {
-    const html = await download(url);
+    const page = await download(url);
+    const html = page.html;
     const $ = load(html);
 
     const title = clean($("h1").first().text());
@@ -236,11 +204,17 @@ for (const [index, url] of urls.entries()) {
       eventTime: time,
       location: findVenue(title, description),
       venueAddress: findAddress(description),
-      priceFrom: getPrice($),
       description: description || ogDescription || null,
       extractionMethod: "woocommerce_html",
       reviewRequired: true,
       issues: [],
+      ...extractPrice(html, page.finalUrl, {
+        provider: "Comedy Pass",
+      }),
+      ...extractAvailability(html, {
+        provider: "Comedy Pass",
+        checkedAt: page.verifiedAt,
+      }),
     };
 
     if (!event.name) event.issues.push("missing_title");

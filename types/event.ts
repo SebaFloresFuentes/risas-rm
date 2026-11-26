@@ -18,6 +18,8 @@ export type Event = {
   
     featured: boolean;
     soldOut: boolean;
+    availabilityStatus: "available" | "sold_out" | "limited" | "unknown";
+    availabilityVerifiedAt: string | null;
   
     verified: boolean;
   };

@@ -4,9 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test scripts/tests/*.test.mjs",
+    "test:prices": "node scripts/test-price-extractor.mjs",
+    "test:supabase": "node scripts/test-supabase-integration.mjs",
+    "test:staging": "node scripts/test-staging-integration.mjs",
+    "automation:discover": "node scripts/discover-ticketplus.mjs && node scripts/discover-multisource.mjs && node scripts/discover-comedypass.mjs && node scripts/build-review-feed.mjs",
+    "automation:normalize": "node scripts/audit-review-candidates.mjs && node scripts/normalize-candidates.mjs",
+    "automation:plan-sync": "node scripts/plan-supabase-sync.mjs",
+    "automation:apply-sync": "node scripts/apply-supabase-sync.mjs",
+    "automation:verify-commercial": "node scripts/verify-published-commercial.mjs",
+    "automation:apply-commercial": "node scripts/apply-commercial-sync.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

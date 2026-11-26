@@ -1,0 +1,87 @@
+name: RadarRisas - Verificación comercial
+
+on:
+  workflow_dispatch:
+    inputs:
+      write_enabled:
+        description: "Actualizar campos comerciales mediante RPC protegida"
+        required: false
+        type: boolean
+        default: false
+
+  schedule:
+    # Cada tres horas. GitHub puede retrasar ejecuciones programadas.
+    - cron: "41 */3 * * *"
+    # Cada hora, solo para funciones dentro de las próximas 36 horas.
+    - cron: "13 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: risas-rm-commercial-verification
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verificar precios y disponibilidad
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas de extractores
+        run: npm test
+
+      - name: Verificar configuración de Supabase
+        id: supabase
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Supabase no configurado; la verificación se omite sin asumir disponibilidad."
+          fi
+
+      - name: Comprobar eventos publicados en modo dry-run
+        if: steps.supabase.outputs.available == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          RADARRISAS_UPCOMING_HOURS: ${{ github.event.schedule == '13 * * * *' && '36' || '0' }}
+        run: npm run automation:verify-commercial
+
+      - name: Aplicar actualización comercial mediante RPC protegida
+        if: steps.supabase.outputs.available == 'true'
+        env:
+          RADARRISAS_WRITE_ENABLED: ${{ (github.event_name == 'workflow_dispatch' && inputs.write_enabled && 'true') || (github.event_name == 'schedule' && vars.RADARRISAS_WRITE_ENABLED) || 'false' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_AUTOMATION_EMAIL: ${{ secrets.SUPABASE_AUTOMATION_EMAIL }}
+          SUPABASE_AUTOMATION_PASSWORD: ${{ secrets.SUPABASE_AUTOMATION_PASSWORD }}
+        run: npm run automation:apply-commercial
+
+      - name: Guardar diagnóstico comercial
+        if: always() && steps.supabase.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: radarrisas-commercial-${{ github.run_number }}
+          path: |
+            data/commercial-verification.json
+            data/commercial-sync-result.json
+          if-no-files-found: warn
+          retention-days: 14

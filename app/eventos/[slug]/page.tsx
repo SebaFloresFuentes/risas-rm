@@ -1,9 +1,11 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import EventCard from "@/components/EventCard";
 import type { Event } from "@/types/event";
+import { todayInChile } from "@/lib/chile-date";
 
 type PageProps = {
   params: Promise<{
@@ -26,6 +28,8 @@ type SupabaseEvent = {
   image_url: string | null;
   featured: boolean;
   sold_out: boolean;
+  availability_status?: Event["availabilityStatus"] | null;
+  availability_verified_at?: string | null;
   verified: boolean;
 };
 
@@ -44,7 +48,11 @@ function mapEvent(item: SupabaseEvent): Event {
     ticketUrl: item.ticket_url,
     imageUrl: item.image_url,
     featured: item.featured,
-    soldOut: item.sold_out,
+    soldOut:
+      item.sold_out || item.availability_status === "sold_out",
+    availabilityStatus:
+      item.availability_status ?? (item.sold_out ? "sold_out" : "unknown"),
+    availabilityVerifiedAt: item.availability_verified_at ?? null,
     verified: item.verified,
   };
 }
@@ -104,6 +112,7 @@ export default function EventPage({ params }: PageProps) {
         .eq("comedian", currentEvent.comedian)
         .eq("verified", true)
         .neq("id", currentEvent.id)
+        .gte("event_date", todayInChile())
         .order("event_date", { ascending: true })
         .order("event_time", { ascending: true })
         .limit(3);
@@ -140,12 +149,12 @@ export default function EventPage({ params }: PageProps) {
           No encontramos este show
         </h1>
 
-        <a
+        <Link
           href="/#cartelera"
           className="mt-8 rounded-xl bg-purple-400 px-6 py-3 font-black text-purple-950"
         >
           Volver a la cartelera
-        </a>
+        </Link>
       </main>
     );
   }
@@ -154,28 +163,28 @@ export default function EventPage({ params }: PageProps) {
     <main className="min-h-screen bg-[#0d0d15] text-white">
       <header className="border-b border-white/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="/" className="text-xl font-black tracking-tight">
+          <Link href="/" className="text-xl font-black tracking-tight">
             RISAS<span className="text-purple-400">RM.</span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/#cartelera"
             className="text-sm font-semibold text-zinc-400 transition hover:text-white"
           >
             ← Volver a cartelera
-          </a>
+          </Link>
         </div>
       </header>
 
       {/* Información principal */}
       <section className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
         <div>
-          <a
+          <Link
             href={`/?venue=${encodeURIComponent(event.venue)}#cartelera`}
             className="text-sm font-black uppercase tracking-[0.25em] text-purple-400 transition hover:text-purple-300"
           >
             {event.venue} · {event.comuna}
-          </a>
+          </Link>
 
           <h1 className="mt-5 text-5xl font-black tracking-tight md:text-7xl">
             {event.comedian}
@@ -218,6 +227,12 @@ export default function EventPage({ params }: PageProps) {
             {formatPrice(event.priceFrom)}
           </p>
 
+          {event.availabilityStatus === "limited" && (
+            <p className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm font-bold text-amber-200">
+              Últimas entradas informadas por la ticketera.
+            </p>
+          )}
+
           {event.ticketUrl && !event.soldOut ? (
             <a
               href={event.ticketUrl}
@@ -258,14 +273,14 @@ export default function EventPage({ params }: PageProps) {
                   También te puede interesar
                 </h2>
 
-                <a
+                <Link
                   href={`/?search=${encodeURIComponent(
                     event.comedian
                   )}#cartelera`}
                   className="text-sm font-bold text-purple-400 transition hover:text-purple-300"
                 >
                   Ver cartelera →
-                </a>
+                </Link>
               </div>
             </div>
 

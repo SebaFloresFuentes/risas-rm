@@ -19,6 +19,8 @@ type SupabaseEvent = {
   image_url: string | null;
   featured: boolean;
   sold_out: boolean;
+  availability_status?: Event["availabilityStatus"] | null;
+  availability_verified_at?: string | null;
   verified: boolean;
 };
 
@@ -37,7 +39,11 @@ function mapEvent(item: SupabaseEvent): Event {
     ticketUrl: item.ticket_url,
     imageUrl: item.image_url,
     featured: item.featured,
-    soldOut: item.sold_out,
+    soldOut:
+      item.sold_out || item.availability_status === "sold_out",
+    availabilityStatus:
+      item.availability_status ?? (item.sold_out ? "sold_out" : "unknown"),
+    availabilityVerifiedAt: item.availability_verified_at ?? null,
     verified: item.verified,
   };
 }

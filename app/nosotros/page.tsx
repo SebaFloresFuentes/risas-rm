@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Nosotros",
@@ -11,16 +12,16 @@ export default function NosotrosPage() {
     <main className="min-h-screen bg-[#0d0d15] text-white">
       <header className="border-b border-white/10">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <a href="/" className="text-xl font-black tracking-tight">
+          <Link href="/" className="text-xl font-black tracking-tight">
             RISAS<span className="text-purple-400">RM.</span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/"
             className="text-sm font-semibold text-zinc-400 transition hover:text-white"
           >
             ← Volver al inicio
-          </a>
+          </Link>
         </div>
       </header>
 

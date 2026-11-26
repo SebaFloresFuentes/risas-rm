@@ -40,6 +40,8 @@ export default function EventCard({ event }: EventCardProps) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(192,132,252,.30),transparent_45%)]" />
 
         {event.imageUrl ? (
+          // Las imágenes editoriales provienen de dominios externos variables.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={event.imageUrl}
             alt={`${event.comedian} - ${event.show}`}
@@ -57,9 +59,17 @@ export default function EventCard({ event }: EventCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/20" />
         )}
 
-        {event.featured && !event.soldOut && (
+        {event.featured &&
+          !event.soldOut &&
+          event.availabilityStatus !== "limited" && (
           <span className="absolute right-4 top-4 rounded-full bg-purple-400 px-3 py-2 text-[10px] font-black tracking-wide text-purple-950">
             DESTACADO
+          </span>
+        )}
+
+        {event.availabilityStatus === "limited" && (
+          <span className="absolute right-4 top-4 rounded-full bg-amber-400 px-3 py-2 text-[10px] font-black tracking-wide text-amber-950">
+            ÚLTIMAS ENTRADAS
           </span>
         )}
 

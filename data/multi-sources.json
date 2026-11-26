@@ -1,15 +1,6 @@
 
 [
     {
-      "id": "comedypass",
-      "name": "Comedy Pass",
-      "listingUrl": "https://comedypass.online/santiago/",
-      "host": "comedypass.online",
-      "pathPrefix": "/tienda/",
-      "maxLinks": 30,
-      "enabled": true
-    },
-    {
       "id": "puntoticket",
       "name": "PuntoTicket",
       "listingUrl": "https://www.puntoticket.com/todos",
@@ -42,4 +33,3 @@
       "enabled": true
     }
   ]
-  

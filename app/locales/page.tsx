@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import Link from "next/link";
+import { todayInChile } from "@/lib/chile-date";
 
 type Venue = {
   name: string;
@@ -22,6 +24,7 @@ async function LocalesContent() {
     .from("events")
     .select("venue, comuna, event_date")
     .eq("verified", true)
+    .gte("event_date", todayInChile())
     .order("event_date", { ascending: true });
 
   if (error) {
@@ -56,22 +59,22 @@ async function LocalesContent() {
       {/* Header */}
       <header className="border-b border-white/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="/" className="text-xl font-black tracking-tight">
+          <Link href="/" className="text-xl font-black tracking-tight">
             RISAS<span className="text-purple-400">RM.</span>
-          </a>
+          </Link>
 
           <nav className="flex items-center gap-6 text-sm font-semibold text-zinc-400">
-            <a href="/#cartelera" className="transition hover:text-white">
+            <Link href="/#cartelera" className="transition hover:text-white">
               Cartelera
-            </a>
+            </Link>
 
-            <a href="/locales" className="text-purple-400">
+            <Link href="/locales" className="text-purple-400">
               Locales
-            </a>
+            </Link>
 
-            <a href="/#nosotros" className="transition hover:text-white">
+            <Link href="/nosotros" className="transition hover:text-white">
               Nosotros
-            </a>
+            </Link>
           </nav>
         </div>
       </header>
@@ -161,13 +164,13 @@ async function LocalesContent() {
                     </div>
                   </div>
 
-                  <a
+                  <Link
                     href={`/?venue=${encodeURIComponent(venue.name)}#cartelera`}
                     className="mt-6 flex w-full items-center justify-between rounded-xl border border-white/10 px-4 py-3 text-sm font-bold transition hover:border-purple-400/40 hover:bg-purple-400/10 hover:text-purple-300"
                   >
                     Ver cartelera
                     <span>→</span>
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}

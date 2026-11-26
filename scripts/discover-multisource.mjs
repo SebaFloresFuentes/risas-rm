@@ -1,6 +1,10 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import { load } from "cheerio";
+import { fetchJson, fetchPage } from "./lib/http-client.mjs";
+import { extractPrice } from "./lib/price-extractor.mjs";
+import { extractAvailability } from "./lib/availability-extractor.mjs";
+import { normalizeProvider } from "./lib/event-normalization.mjs";
 
 const sources = JSON.parse(
   await readFile(
@@ -24,29 +28,11 @@ function normalize(value) {
 }
 
 async function fetchHtml(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    15000
-  );
-
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        Accept: "text/html",
-        "User-Agent": "RisasRM-Research/0.1",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return response.text();
-  } finally {
-    clearTimeout(timeout);
-  }
+  return fetchPage(url, {
+    timeoutMs: 15000,
+    retries: 2,
+    backoffMs: 500,
+  });
 }
 
 function collectEvents(node) {
@@ -178,7 +164,7 @@ async function discoverWebsite(source) {
     return source.urls ?? [];
   }
 
-  const html = await fetchHtml(source.listingUrl);
+  const { html } = await fetchHtml(source.listingUrl);
 
   return listingLinks(html, source);
 }
@@ -189,11 +175,12 @@ function isFuture(value) {
     date >= now;
 }
 
-function recordFromJsonLd(event, source, url) {
+function recordFromJsonLd(event, source, url, page) {
   const place = getPlace(event.location);
+  const provider = normalizeProvider(source.name);
 
   return {
-    source: source.name,
+    source: provider,
     sourceId: source.id,
     sourceUrl: url,
     url,
@@ -202,6 +189,15 @@ function recordFromJsonLd(event, source, url) {
     location: place.name,
     venueAddress: place.address,
     extractionMethod: "jsonld",
+    ...extractPrice(page.html, page.finalUrl, {
+      provider,
+      startDate: event.startDate,
+    }),
+    ...extractAvailability(page.html, {
+      provider,
+      startDate: event.startDate,
+      checkedAt: page.verifiedAt,
+    }),
   };
 }
 
@@ -225,17 +221,11 @@ async function discoverTicketmaster(source) {
   url.searchParams.set("size", "100");
   url.searchParams.set("sort", "date,asc");
 
-  const response = await fetch(url, {
-    signal: AbortSignal.timeout(15000),
+  const { json, verifiedAt } = await fetchJson(url, {
+    timeoutMs: 15000,
+    retries: 2,
+    backoffMs: 500,
   });
-
-  if (!response.ok) {
-    throw new Error(
-      `Ticketmaster API: HTTP ${response.status}`
-    );
-  }
-
-  const json = await response.json();
   const events = json._embedded?.events ?? [];
 
   return events.map((event) => {
@@ -260,6 +250,15 @@ async function discoverTicketmaster(source) {
         venue?.country?.name,
       ].filter(Boolean).join(", ") || null,
       extractionMethod: "ticketmaster_api",
+      priceFrom: null,
+      priceCurrency: null,
+      priceMethod: null,
+      priceIssues: ["price_not_found"],
+      availabilityStatus: "unknown",
+      availabilitySource: null,
+      availabilityEvidence: [],
+      availabilityCheckedAt: verifiedAt,
+      availabilityVerifiedAt: null,
     };
   });
 }
@@ -285,14 +284,15 @@ for (const source of sources.filter((s) => s.enabled)) {
 
     for (const url of urls) {
       try {
-        const html = await fetchHtml(url);
-        const events = readEventData(html);
+        const page = await fetchHtml(url);
+        const events = readEventData(page.html);
 
         for (const event of events) {
           const record = recordFromJsonLd(
             event,
             source,
-            url
+            url,
+            page
           );
 
           if (

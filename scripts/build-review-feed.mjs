@@ -1,5 +1,6 @@
 
 import { readFile, writeFile } from "node:fs/promises";
+import { normalizeProvider } from "./lib/event-normalization.mjs";
 
 const base = new URL("../data/", import.meta.url);
 
@@ -26,18 +27,11 @@ function normalize(value) {
     .trim();
 }
 
+const geography = await readOptional("rm-communes.json");
+
 const rmComunas = [
-  "Santiago", "Santiago Centro", "Providencia",
-  "Ñuñoa", "San Miguel", "San Bernardo",
-  "Puente Alto", "La Reina", "Las Condes",
-  "La Florida", "Maipú", "Peñalolén",
-  "Macul", "Recoleta", "Independencia",
-  "Estación Central", "Quilicura",
-  "La Cisterna", "Vitacura", "Lo Barnechea",
-  "Renca", "La Granja", "Lo Prado",
-  "Cerrillos", "El Bosque", "Pudahuel",
-  "San Joaquín", "La Pintana", "Huechuraba",
-  "Conchalí", "San Ramón", "Pedro Aguirre Cerda",
+  ...Object.values(geography.provinces).flat(),
+  ...Object.keys(geography.aliases)
 ];
 
 const outside = [
@@ -97,33 +91,51 @@ const entries = [];
 
 for (const event of ticketplus.events ?? []) {
   entries.push({
-    source: "Ticketplus",
+    source: normalizeProvider("Ticketplus"),
     name: event.name,
     date: event.startDate?.slice(0, 10) ?? null,
     time: event.startDate?.slice(11, 16) ?? null,
     venue: event.location ?? null,
     address: event.venueAddress ?? null,
     url: event.url,
+    priceFrom: event.priceFrom ?? null,
+    priceCurrency: event.priceCurrency ?? null,
+    priceMethod: event.priceMethod ?? null,
+    priceIssues: event.priceIssues ?? [],
+    availabilityStatus: event.availabilityStatus ?? "unknown",
+    availabilitySource: event.availabilitySource ?? null,
+    availabilityEvidence: event.availabilityEvidence ?? [],
+    availabilityCheckedAt: event.availabilityCheckedAt ?? null,
+    availabilityVerifiedAt: event.availabilityVerifiedAt ?? null,
     issues: [],
   });
 }
 
 for (const event of multisource.events ?? []) {
   entries.push({
-    source: event.source ?? event.sourceId,
+    source: normalizeProvider(event.source ?? event.sourceId),
     name: event.name,
     date: event.startDate?.slice(0, 10) ?? null,
     time: event.startDate?.slice(11, 16) ?? null,
     venue: event.location ?? null,
     address: event.venueAddress ?? null,
     url: event.url,
+    priceFrom: event.priceFrom ?? null,
+    priceCurrency: event.priceCurrency ?? null,
+    priceMethod: event.priceMethod ?? null,
+    priceIssues: event.priceIssues ?? [],
+    availabilityStatus: event.availabilityStatus ?? "unknown",
+    availabilitySource: event.availabilitySource ?? null,
+    availabilityEvidence: event.availabilityEvidence ?? [],
+    availabilityCheckedAt: event.availabilityCheckedAt ?? null,
+    availabilityVerifiedAt: event.availabilityVerifiedAt ?? null,
     issues: [],
   });
 }
 
 for (const event of comedypass.events ?? []) {
   entries.push({
-    source: "Comedy Pass",
+    source: normalizeProvider("Comedy Pass"),
     name: event.name,
     date: event.date?.date ?? null,
     day: event.date?.day ?? null,
@@ -132,6 +144,15 @@ for (const event of comedypass.events ?? []) {
     venue: event.location ?? null,
     address: event.venueAddress ?? null,
     url: event.url,
+    priceFrom: event.priceFrom ?? null,
+    priceCurrency: event.priceCurrency ?? null,
+    priceMethod: event.priceMethod ?? null,
+    priceIssues: event.priceIssues ?? [],
+    availabilityStatus: event.availabilityStatus ?? "unknown",
+    availabilitySource: event.availabilitySource ?? null,
+    availabilityEvidence: event.availabilityEvidence ?? [],
+    availabilityCheckedAt: event.availabilityCheckedAt ?? null,
+    availabilityVerifiedAt: event.availabilityVerifiedAt ?? null,
     issues: [...(event.issues ?? [])],
   });
 }

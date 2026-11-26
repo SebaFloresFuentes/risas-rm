@@ -3,6 +3,12 @@ name: RadarRisas - Descubrimiento de eventos
 
 on:
   workflow_dispatch:
+    inputs:
+      write_enabled:
+        description: "Ejecutar RPC de ingesta (requiere autorización previa)"
+        required: false
+        type: boolean
+        default: false
 
   schedule:
     # Diariamente a las 12:17 UTC.
@@ -36,6 +42,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Ejecutar pruebas de extractores
+        run: npm test
+
       - name: Descubrir Ticketplus
         run: node scripts/discover-ticketplus.mjs
 
@@ -49,6 +58,43 @@ jobs:
 
       - name: Unificar cartelera
         run: node scripts/build-review-feed.mjs
+
+      - name: Comprobar acceso público de Supabase
+        id: supabase
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Supabase no configurado: se conservará el artefacto de descubrimiento sin plan de ingesta."
+          fi
+
+      - name: Auditar y normalizar candidatos
+        if: steps.supabase.outputs.available == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run automation:normalize
+
+      - name: Preparar sincronización dry-run
+        if: steps.supabase.outputs.available == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run automation:plan-sync
+
+      - name: Ingestar candidatos mediante RPC protegida
+        if: steps.supabase.outputs.available == 'true'
+        env:
+          RADARRISAS_WRITE_ENABLED: ${{ (github.event_name == 'workflow_dispatch' && inputs.write_enabled && 'true') || (github.event_name == 'schedule' && vars.RADARRISAS_WRITE_ENABLED) || 'false' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_AUTOMATION_EMAIL: ${{ secrets.SUPABASE_AUTOMATION_EMAIL }}
+          SUPABASE_AUTOMATION_PASSWORD: ${{ secrets.SUPABASE_AUTOMATION_PASSWORD }}
+        run: npm run automation:apply-sync
 
       - name: Mostrar resumen
         run: |
@@ -67,5 +113,9 @@ jobs:
             data/multisource-discovered.json
             data/comedypass-discovered.json
             data/unified-review-feed.json
+            data/audited-review-feed.json
+            data/normalized-candidates.json
+            data/supabase-sync-plan.json
+            data/supabase-sync-result.json
           if-no-files-found: warn
           retention-days: 14

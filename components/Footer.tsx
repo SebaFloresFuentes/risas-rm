@@ -1,4 +1,5 @@
 import BrandLogo from "@/components/BrandLogo";
+import Link from "next/link";
 
 export default function Footer() {
     return (
@@ -6,9 +7,9 @@ export default function Footer() {
         <div className="mx-auto max-w-7xl px-6 py-12">
           <div className="grid gap-10 md:grid-cols-3">
             <div>
-              <a href="/" className="text-xl font-black tracking-tight text-white">
+              <Link href="/" className="text-xl font-black tracking-tight text-white">
                 <BrandLogo />
-              </a>
+              </Link>
   
               <p className="mt-4 max-w-sm text-sm leading-6 text-zinc-500">
                 Tu guía para descubrir stand-up y comedia en Santiago y la
@@ -22,26 +23,26 @@ export default function Footer() {
               </p>
   
               <div className="mt-4 flex flex-col gap-3 text-sm text-zinc-500">
-                <a
+                <Link
                   href="/#cartelera"
                   className="transition hover:text-purple-400"
                 >
                   Cartelera
-                </a>
+                </Link>
   
-                <a
+                <Link
                   href="/locales"
                   className="transition hover:text-purple-400"
                 >
                   Locales
-                </a>
+                </Link>
   
-                <a
+                <Link
                   href="/nosotros"
                   className="transition hover:text-purple-400"
                 >
                   Nosotros
-                </a>
+                </Link>
               </div>
             </div>
   
@@ -51,19 +52,19 @@ export default function Footer() {
               </p>
   
               <div className="mt-4 flex flex-col gap-3 text-sm text-zinc-500">
-                <a
+                <Link
                   href="/contacto"
                   className="transition hover:text-purple-400"
                 >
                   Contacto
-                </a>
+                </Link>
   
-                <a
+                <Link
                   href="/privacidad"
                   className="transition hover:text-purple-400"
                 >
                   Política de privacidad
-                </a>
+                </Link>
               </div>
             </div>
           </div>
